@@ -1,0 +1,44 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "SerializingData",
+  "States": {
+    "SerializingData": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:501296003036:function:p3project-serializeImageData:$LATEST",
+        "Payload": {
+          "image_data.$": "$.image_data",
+          "s3_bucket.$": "$.s3_bucket",
+          "s3_key.$": "$.s3_key"
+        }
+      },
+      "Next": "Classify"
+    },
+    "Classify": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:501296003036:function:p2project-classification:$LATEST",
+        "Payload": {
+          "image_data.$": "$.body.image_data"
+        }
+      },
+      "Next": "Filter"
+    },
+    "Filter": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:501296003036:function:p3project-filter:$LATEST",
+        "Payload": {
+          "inferences.$": "$.body.inferences"
+        }
+      },
+      "End": true
+    }
+  }
+}
